@@ -1,0 +1,18 @@
+#:kivy 1.0.9
+<ExitusGuy>:
+    size: 15,15
+    canvas:
+        Color:
+            rgba: 0,1,0,1
+        Ellipse:
+            pos: self.pos
+            size: self.size
+<ExitusHole>:
+    size: 20,20
+    canvas:
+        Color:
+            rgba: 0,1,1,1/(self.disabled+0.01)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+<ExitusGame>:
