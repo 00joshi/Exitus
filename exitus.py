@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+#
+# Sounds from: (CC-by-SA)
+# http://www.freesound.org/people/Robinhood76/sounds/64425/
+# http://www.freesound.org/people/mikaelfernstrom/sounds/68695/
+# http://www.freesound.org/people/marionagm90/sounds/220660/
+
 import kivy
 kivy.require('1.8.0')
 from kivy.app import App
@@ -12,18 +18,22 @@ from kivy.config import Config
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from time import time
+from kivy.core.audio import SoundLoader
 ## Global Vars
 guylist = list()
 holelist = list()
 wsize = (800,600)
 nguys = 15
-nholes = 10
+nholes = 5
 nkills = 0
+sndscream = SoundLoader.load('scream.wav')
+sndhammer = SoundLoader.load('hammer.wav')
+sndfanfare = SoundLoader.load('fanfare.wav')
 starttime = time()
-Config.set('graphics', 'width', wsize[0])
 Config.set('graphics', 'width', wsize[0])
 Config.set('graphics', 'height', wsize[1])
 class ExitusGuy(Widget):
+    scream = sndscream
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
     velocity = ReferenceListProperty(velocity_x, velocity_y)
@@ -41,24 +51,19 @@ class ExitusGuy(Widget):
     def collision(self, hole):
         if self.collide_widget(hole):
             if self.parent:
+                self.scream.play()
                 self.parent.remove_widget(self)
-                global nkills
-                nkills+=1
-                if nkills == nguys-3:
-                    survival = time() -starttime
-                    popup = ModalView(size_hint=(0.75, 0.5))
-                    victory_label = Label(text="Game Over\n" + "%0.2f"%survival + " sec", font_size=50)
-                    popup.add_widget(victory_label)
-                    #popup.bind(on_dismiss=self.reset)
-                    popup.open()
+                game.scoreupdate()
 class ExitusHole(Widget):
      pressed = ListProperty([0,0])
      disabled = NumericProperty(0)
      r = NumericProperty(0)
+     hammer=sndhammer
      def on_touch_down(self, touch):
          if self.collide_point(*touch.pos):
              self.pressed = touch.pos
              self.disabled = 100
+             self.hammer.play()
              return True
          return super(ExitusHole, self).on_touch_down(touch)
 
@@ -76,6 +81,7 @@ class ExitusHole(Widget):
 
 
 class ExitusGame(Widget):
+    fanfare = sndfanfare
     def __init__(self,**kwargs):
         super(ExitusGame, self).__init__(**kwargs)
         for i in range(0,nguys):
@@ -84,6 +90,21 @@ class ExitusGame(Widget):
             holelist.append(ExitusHole())
         for thing in guylist+holelist:
             self.add_widget(thing)
+    def scoreupdate(self):
+        global nkills
+        nkills+=1
+        if nkills == nguys-3:
+            self.gameover()
+    def gameover(self):
+            survival = time() -starttime
+            popup = ModalView(size_hint=(0.75, 0.5))
+            victory_label = Label(text="Game Over\n" + "%0.2f"%survival + " sec", font_size=50)
+            popup.add_widget(victory_label)
+            for guy in guylist:
+                guy.velocity = (0,0)
+            #popup.bind(on_dismiss=self.reset)
+            popup.open()
+            self.fanfare.play()
     def difficultify(self,dt):
         newhole = ExitusHole()
         self.add_widget(newhole)
@@ -112,6 +133,7 @@ class ExitusApp(App):
         game=ExitusGame()
         Clock.schedule_interval(game.update,1.0/60.0)
         Clock.schedule_interval(game.difficultify,5)
+        global game
         return game
 
 if __name__ == '__main__':
