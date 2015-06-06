@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import kivy
+kivy.require('1.8.0')
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, ListProperty
@@ -40,12 +42,12 @@ class ExitusGuy(Widget):
         if self.collide_widget(hole):
             if self.parent:
                 self.parent.remove_widget(self)
-                nkills+=1
                 global nkills
+                nkills+=1
                 if nkills == nguys-3:
                     survival = time() -starttime
                     popup = ModalView(size_hint=(0.75, 0.5))
-                    victory_label = Label(text="Game Over\n" + str(survival), font_size=50)
+                    victory_label = Label(text="Game Over\n" + "%0.2f"%survival + " sec", font_size=50)
                     popup.add_widget(victory_label)
                     #popup.bind(on_dismiss=self.reset)
                     popup.open()
